@@ -43,7 +43,6 @@ import org.apache.doris.fs.remote.RemoteFileSystem;
 import org.apache.doris.thrift.TBrokerFileStatus;
 import org.apache.doris.thrift.TExprOpcode;
 
-import com.aliyun.datalake.metastore.common.DataLakeConfig;
 import com.aliyun.datalake.metastore.hive2.ProxyMetaStoreClient;
 import com.google.common.base.Strings;
 import com.google.common.collect.Maps;
@@ -161,7 +160,6 @@ public class HiveMetaStoreClientHelper {
         try {
             if ("dlf".equalsIgnoreCase(type)) {
                 // For aliyun DLF
-                hiveConf.set(DataLakeConfig.CATALOG_CREATE_DEFAULT_DB, "false");
                 metaStoreClient = new ProxyMetaStoreClient(hiveConf);
             } else {
                 metaStoreClient = new HiveMetaStoreClient(hiveConf);
