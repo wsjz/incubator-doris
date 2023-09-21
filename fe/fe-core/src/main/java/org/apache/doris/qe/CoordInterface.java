@@ -15,6 +15,17 @@
 // specific language governing permissions and limitations
 // under the License.
 
-suite("test_md5") {
-    qt_select "select md5(k6) from test_query_db.test order by k6"
+package org.apache.doris.qe;
+
+import org.apache.doris.proto.Types;
+
+public interface CoordInterface {
+    public void exec() throws Exception;
+
+    public RowBatch getNext() throws Exception;
+
+    public int getInstanceTotalNum();
+
+    public void cancel(Types.PPlanFragmentCancelReason cancelReason);
 }
+
