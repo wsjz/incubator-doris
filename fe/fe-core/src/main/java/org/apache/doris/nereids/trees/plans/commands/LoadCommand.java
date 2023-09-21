@@ -84,7 +84,11 @@ public class LoadCommand extends Command implements ForwardWithSync {
     private final List<BulkLoadDataDesc> sourceInfos;
     private final Map<String, String> properties;
     private final String comment;
+<<<<<<< Updated upstream
     private final List<LogicalPlan> plans = new ArrayList<>();
+=======
+    private List<InsertIntoTableCommand> plans;
+>>>>>>> Stashed changes
     private Profile profile;
 
     /**
@@ -118,6 +122,7 @@ public class LoadCommand extends Command implements ForwardWithSync {
     @Override
     public void run(ConnectContext ctx, StmtExecutor executor) throws Exception {
         // TODO: begin txn form multi insert sql
+<<<<<<< Updated upstream
         /* this.profile = new Profile("Query", ctx.getSessionVariable().enableProfile);
           profile.getSummaryProfile().setQueryBeginTime();
           for (BulkLoadDataDesc dataDesc : sourceInfos) {
@@ -125,6 +130,17 @@ public class LoadCommand extends Command implements ForwardWithSync {
           }
           profile.getSummaryProfile().setQueryPlanFinishTime();
          * executeInsertStmtPlan(ctx, executor, plans);  */
+=======
+        this.profile = new Profile("Query", ctx.getSessionVariable().enableProfile);
+        profile.getSummaryProfile().setQueryBeginTime();
+        if (sourceInfos.size() == 1) {
+            plans = ImmutableList.of(new InsertIntoTableCommand(completeQueryPlan(ctx, sourceInfos.get(0)),
+                    Optional.of(labelName), false));
+        }
+        // TODO: support multi insert sql
+        profile.getSummaryProfile().setQueryPlanFinishTime();
+        executeInsertStmtPlan(ctx, executor, plans);
+>>>>>>> Stashed changes
         throw new AnalysisException("Fallback to legacy planner temporary.");
     }
 
@@ -471,8 +487,13 @@ public class LoadCommand extends Command implements ForwardWithSync {
 
     private void executeInsertStmtPlan(ConnectContext ctx, StmtExecutor executor, List<InsertIntoTableCommand> plans) {
         try {
+<<<<<<< Updated upstream
             for (LogicalPlan logicalPlan : plans) {
                 ((Command) logicalPlan).run(ctx, executor);
+=======
+            for (InsertIntoTableCommand logicalPlan : plans) {
+                logicalPlan.run(ctx, executor);
+>>>>>>> Stashed changes
             }
         } catch (QueryStateException e) {
             ctx.setState(e.getQueryState());
