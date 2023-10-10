@@ -17,13 +17,13 @@
 
 package org.apache.doris.datasource.iceberg.dlf.client;
 
-import com.aliyun.datalake.metastore.hive2.ProxyMetaStoreClient;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hive.conf.HiveConf;
 import org.apache.hadoop.hive.metastore.IMetaStoreClient;
 import org.apache.hadoop.hive.metastore.RetryingMetaStoreClient;
 import org.apache.iceberg.hive.HiveClientPool;
 import org.apache.iceberg.hive.RuntimeMetaException;
+import shade.doris.com.aliyun.datalake.metastore.hive2.ProxyMetaStoreClient;
 
 public class DLFClientPool extends HiveClientPool {
 
