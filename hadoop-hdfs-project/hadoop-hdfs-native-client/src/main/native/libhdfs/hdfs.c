@@ -36,6 +36,7 @@
 #define JMETHOD1(X, R)      "(" X ")" R
 #define JMETHOD2(X, Y, R)   "(" X Y ")" R
 #define JMETHOD3(X, Y, Z, R)   "(" X Y Z")" R
+#define JMETHOD4(X, Y, Z, A, R)   "(" X Y Z A")" R
 
 #define KERBEROS_TICKET_CACHE_PATH "hadoop.security.kerberos.ticket.cache.path"
 
@@ -510,6 +511,7 @@ struct hdfsBuilder {
     const char *kerbTicketCachePath;
     const char *kerb5ConfPath;
     const char *keyTabFile;
+    const char *kerbPrincipal;
     const char *userName;
     struct hdfsBuilderConfOpt *opts;
     struct hdfsBuilderConfFileOpt *fileOpts;
@@ -628,6 +630,11 @@ void hdfsBuilderSetNameNodePort(struct hdfsBuilder *bld, tPort port)
 void hdfsBuilderSetUserName(struct hdfsBuilder *bld, const char *userName)
 {
     bld->userName = userName;
+}
+
+void hdfsBuilderSetPrincipal(struct hdfsBuilder *bld, const char *kerbPrincipal)
+{
+    bld->kerbPrincipal = kerbPrincipal;
 }
 
 void hdfsBuilderSetKerbTicketCachePath(struct hdfsBuilder *bld,
@@ -767,7 +774,7 @@ hdfsFS hdfsBuilderConnect(struct hdfsBuilder *bld)
 {
     JNIEnv *env = 0;
     jobject jConfiguration = NULL, jFS = NULL, jURI = NULL, jCachePath = NULL;
-    jstring jURIString = NULL, jUserString = NULL, jKeyTabString = NULL;
+    jstring jURIString = NULL, jUserString = NULL, jPrincipalString = NULL, jKeyTabString = NULL;
     jvalue  jVal;
     jthrowable jthr = NULL;
     char *cURI = 0, buf[512];
@@ -918,16 +925,37 @@ hdfsFS hdfsBuilderConnect(struct hdfsBuilder *bld)
             JMETHOD1(JPARAM(HADOOP_CONF),JAVA_VOID), jConfiguration);
         }
         if (bld->forceNewInstance) {
-            jthr = invokeMethod(env, &jVal, STATIC, NULL,
-                    JC_FILE_SYSTEM, "newInstance",
-                    JMETHOD3(JPARAM(JAVA_NET_URI), JPARAM(HADOOP_CONF),
-                             JPARAM(JAVA_STRING), JPARAM(HADOOP_FS)), jURI,
-                    jConfiguration, jUserString);
-            if (jthr) {
-                ret = printExceptionAndFree(env, jthr, PRINT_EXC_ALL,
-                    "hdfsBuilderConnect(%s)",
-                    hdfsBuilderToStr(bld, buf, sizeof(buf)));
-                goto done;
+            if (bld->kerbPrincipal && bld->keyTabFile) {
+                jthr = newJavaStr(env, bld->kerbPrincipal, &jPrincipalString);
+                if (jthr) {
+                    ret = printExceptionAndFree(env, jthr, PRINT_EXC_ALL,
+                                                "hdfsBuilderConnect(%s)",
+                                                hdfsBuilderToStr(bld, buf, sizeof(buf)));
+                    goto done;
+                }
+                jthr = invokeMethod(env, &jVal, STATIC, NULL,
+                                    JC_FILE_SYSTEM, "newInstanceFromKeytab",
+                                    JMETHOD4(JPARAM(JAVA_NET_URI), JPARAM(HADOOP_CONF),
+                                             JPARAM(JAVA_STRING), JPARAM(JAVA_STRING), JPARAM(HADOOP_FS)), jURI,
+                                    jConfiguration, jPrincipalString, jKeyTabString);
+                if (jthr) {
+                    ret = printExceptionAndFree(env, jthr, PRINT_EXC_ALL,
+                                                "hdfsBuilderConnect(%s)",
+                                                hdfsBuilderToStr(bld, buf, sizeof(buf)));
+                    goto done;
+                }
+            } else {
+                jthr = invokeMethod(env, &jVal, STATIC, NULL,
+                                    JC_FILE_SYSTEM, "newInstance",
+                                    JMETHOD3(JPARAM(JAVA_NET_URI), JPARAM(HADOOP_CONF),
+                                             JPARAM(JAVA_STRING), JPARAM(HADOOP_FS)), jURI,
+                                    jConfiguration, jUserString);
+                if (jthr) {
+                    ret = printExceptionAndFree(env, jthr, PRINT_EXC_ALL,
+                                                "hdfsBuilderConnect(%s)",
+                                                hdfsBuilderToStr(bld, buf, sizeof(buf)));
+                    goto done;
+                }
             }
             jFS = jVal.l;
         } else {
