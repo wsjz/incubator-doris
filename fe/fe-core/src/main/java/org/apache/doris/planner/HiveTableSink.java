@@ -40,6 +40,7 @@ import org.apache.doris.thrift.THiveLocationParams;
 import org.apache.doris.thrift.THivePartition;
 import org.apache.doris.thrift.THiveTableSink;
 
+import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.hive.metastore.api.StorageDescriptor;
 
 import java.util.ArrayList;
@@ -153,7 +154,7 @@ public class HiveTableSink extends DataSink {
 
     private String createTempPath(String location) {
         String user = ConnectContext.get().getUserIdentity().getUser();
-        return location + "/.doris_staging/" + user + "/" + UUID.randomUUID().toString().replace("-", "");
+        return LocationPath.getTempWritePath(location, "/tmp/.doris_staging/" + user);
     }
 
     private void setCompressType(THiveTableSink tSink, TFileFormatType formatType) {
