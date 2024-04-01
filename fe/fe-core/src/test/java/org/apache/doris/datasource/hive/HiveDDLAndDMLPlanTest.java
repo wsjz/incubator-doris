@@ -20,6 +20,7 @@ package org.apache.doris.datasource.hive;
 import org.apache.doris.analysis.CreateCatalogStmt;
 import org.apache.doris.analysis.CreateDbStmt;
 import org.apache.doris.analysis.CreateTableStmt;
+import org.apache.doris.analysis.DbName;
 import org.apache.doris.analysis.DropDbStmt;
 import org.apache.doris.analysis.HashDistributionDesc;
 import org.apache.doris.analysis.SwitchStmt;
@@ -152,7 +153,7 @@ public class HiveDDLAndDMLPlanTest extends TestWithFeService {
                 }
             }
         };
-        CreateDbStmt createDbStmt = new CreateDbStmt(true, mockedDbName, dbProps);
+        CreateDbStmt createDbStmt = new CreateDbStmt(true, new DbName(mockedCtlName, mockedDbName), dbProps);
         Env.getCurrentEnv().createDb(createDbStmt);
         // checkout ifNotExists
         Env.getCurrentEnv().createDb(createDbStmt);
