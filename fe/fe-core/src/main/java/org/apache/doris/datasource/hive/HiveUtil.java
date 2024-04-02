@@ -45,13 +45,7 @@ import org.apache.hadoop.util.ReflectionUtils;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -183,12 +177,11 @@ public final class HiveUtil {
         table.setCreateTime(createTime);
         table.setLastAccessTime(createTime);
         // table.setRetention(0);
-        String location = hiveTable.getProperties().get(HiveMetadataOps.LOCATION_URI_KEY);
         Set<String> partitionSet = new HashSet<>(hiveTable.getPartitionKeys());
         Pair<List<FieldSchema>, List<FieldSchema>> hiveSchema = toHiveSchema(hiveTable.getColumns(), partitionSet);
 
         table.setSd(toHiveStorageDesc(hiveSchema.first, hiveTable.getBucketCols(), hiveTable.getNumBuckets(),
-                hiveTable.getFileFormat(), location));
+                hiveTable.getFileFormat(), hiveTable.getLocation()));
         table.setPartitionKeys(hiveSchema.second);
 
         // table.setViewOriginalText(hiveTable.getViewSql());
@@ -201,13 +194,12 @@ public final class HiveUtil {
     }
 
     private static StorageDescriptor toHiveStorageDesc(List<FieldSchema> columns,
-            List<String> bucketCols, int numBuckets, String fileFormat, String location) {
+            List<String> bucketCols, int numBuckets, String fileFormat, Optional<String> location) {
         StorageDescriptor sd = new StorageDescriptor();
         sd.setCols(columns);
         setFileFormat(fileFormat, sd);
-        if (StringUtils.isNotEmpty(location)) {
-            sd.setLocation(location);
-        }
+        location.ifPresent(sd::setLocation);
+
         sd.setBucketCols(bucketCols);
         sd.setNumBuckets(numBuckets);
         Map<String, String> parameters = new HashMap<>();

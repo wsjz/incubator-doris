@@ -36,11 +36,7 @@ import org.junit.Test;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 @Ignore
 public class HmsCommitTest {
@@ -99,11 +95,11 @@ public class HmsCommitTest {
         List<String> partitionKeys = new ArrayList<>();
         partitionKeys.add("c3");
         HiveTableMetadata tableMetadata = new HiveTableMetadata(
-                dbName, tbWithPartition, columns, partitionKeys,
+                dbName, tbWithPartition, Optional.empty(), columns, partitionKeys,
                 new HashMap<>(), fileFormat);
         hmsClient.createTable(tableMetadata, true);
         HiveTableMetadata tableMetadata2 = new HiveTableMetadata(
-                dbName, tbWithoutPartition, columns, new ArrayList<>(),
+                dbName, tbWithoutPartition, Optional.empty(), columns, new ArrayList<>(),
                 new HashMap<>(), fileFormat);
         hmsClient.createTable(tableMetadata2, true);
     }
